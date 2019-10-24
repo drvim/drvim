@@ -74,9 +74,9 @@ ENV BASE16_THEME ocean
 
 # Setup development user (instead of root)
 # These defaults are for OSX
-ARG username=spierce
-ARG user_id=501
-ARG group_id=20
+ARG username=drvim
+ARG user_id=1000
+ARG group_id=1000
 
 RUN adduser -S ${username} -u ${user_id} -g ${group_id} -s /bin/zsh \
     && echo 'ALL ALL=(ALL) NOPASSWD: ALL' >> /etc/sudoers
@@ -102,4 +102,5 @@ RUN nvim -c 'CocInstall -sync coc-python coc-tsserver coc-solargraph | q' && ech
 
 WORKDIR /home/${username}
 
+RUN echo Built for: user=${username}, uid=${user_id}, gid=${group_id}
 CMD ["/usr/bin/tmux"]
