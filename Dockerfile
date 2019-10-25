@@ -1,76 +1,77 @@
-FROM alpine:latest
+FROM frolvlad/alpine-glibc
 MAINTAINER Scott Pierce <ddrscott@gmail.com>
 
-RUN apk add --update \
+ENV LC_ALL en_US.UTF-8
+ENV LANG en_US.UTF-8
+ENV LANGUAGE en_US.UTF-8
+
+# Terminal settings and colors
+ENV TERM xterm-256color
+ENV BASE16_THEME ocean
+
+# Configure environment
+ENV CONDA_DIR /opt/conda
+ENV PATH $CONDA_DIR/bin:$PATH
+
+# Configure Miniconda
+ENV MINICONDA_VER 4.7.12
+ENV MINICONDA Miniconda3-$MINICONDA_VER-Linux-x86_64.sh
+ENV MINICONDA_URL https://repo.continuum.io/miniconda/$MINICONDA
+ENV MINICONDA_MD5_SUM 0dba759b8ecfc8948f626fa18785e3d8
+
+RUN echo 'http://dl-cdn.alpinelinux.org/alpine/edge/community' >> /etc/apk/repositories \
+  && apk add --update-cache \
+  bash \
   zsh \
   git \
-  alpine-sdk build-base\
-  libtool \
-  automake \
-  m4 \
-  autoconf \
-  linux-headers \
   unzip \
-  ncurses ncurses-dev ncurses-libs ncurses-terminfo \
-  clang \
-  xz \
   curl \
-  make \
-  cmake \
   tmux \
-  gettext gettext-dev \
-  python2-dev \
-  python3 python3-dev \
-  py-pip \
-  go \
-  rust \
-  crystal \
-  nodejs yarn \
-  ruby ruby-dev ruby-nokogiri \
+  neovim \
+  nodejs \
+  yarn \
+  shadow \
   && rm -rf /var/cache/apk/*
 
 WORKDIR /tmp
-ENV CMAKE_EXTRA_FLAGS=-DENABLE_JEMALLOC=OFF
 
-RUN git clone https://github.com/neovim/libtermkey.git && \
-  cd libtermkey && \
-  make && \
-  make install && \
-  cd ../ && rm -rf libtermkey
+RUN mkdir -p $CONDA_DIR && \
+    curl -L $MINICONDA_URL  -o miniconda.sh && \
+    echo "$MINICONDA_MD5_SUM  miniconda.sh" | md5sum -c - && \
+    sh miniconda.sh -f -b -p $CONDA_DIR && \
+    rm miniconda.sh && \
+    $CONDA_DIR/bin/conda install --yes conda==$MINICONDA_VER && \
+    $CONDA_DIR/bin/conda install --yes \
+        ruby \
+        numpy \
+        pandas \
+        nomkl \
+        pygments \
+        sqlparse \
+        pylint \
+        black \
+        jedi \
+        future \
+        pluggy \
+        autopep8 \
+        flake8 \
+        pycodestyle \
+        pydocstyle \
+        pyflakes \
+        rope \
+        yapf \
+        parso \
+        entrypoints \
+        snowballstemmer \
+    && /opt/conda/bin/conda clean -afy \
+    && find /opt/conda/ -follow -type f -name '*.a' -delete \
+    && find /opt/conda/ -follow -type f -name '*.pyc' -delete \
+    && find /opt/conda/ -follow -type f -name '*.js.map' -delete
 
-RUN git clone https://github.com/neovim/libvterm.git && \
-  cd libvterm && \
-  make && \
-  make install && \
-  cd ../ && rm -rf libvterm
-
-RUN git clone https://github.com/neovim/unibilium.git && \
-  cd unibilium && \
-  make && \
-  make install && \
-  cd ../ && rm -rf unibilium
-
-RUN  git clone https://github.com/neovim/neovim.git && \
-  cd neovim && \
-  make CMAKE_BUILD_TYPE=Release && \
-  make install && \
-  cd ../ && rm -rf neovim
-
-RUN gem install -N rake rdoc neovim solargraph
 RUN yarn global add neovim && \
-    pip3 install \
+    pip install --no-cache-dir \
        neovim \
-       pygments \
-       sqlparse \
-       pylint \
-       python-language-server\[all\] \
-       black
-
-# Setup with colors and UTF-8
-ENV TERM xterm-256color
-ENV LC_ALL en_US.utf-8
-ENV LANG en_US.utf-8
-ENV BASE16_THEME ocean
+       python-language-server\[all\]
 
 # Setup development user (instead of root)
 # These defaults are for OSX
@@ -78,7 +79,9 @@ ARG username=drvim
 ARG user_id=1000
 ARG group_id=1000
 
-RUN adduser -S ${username} -u ${user_id} -g ${group_id} -s /bin/zsh \
+
+RUN groupadd -fg ${group_id} drvim \
+    && useradd -m -l -u ${user_id} -g ${group_id} -s /bin/zsh ${username} \
     && echo 'ALL ALL=(ALL) NOPASSWD: ALL' >> /etc/sudoers
 
 # Do everything else as created user
@@ -99,10 +102,12 @@ RUN git clone https://github.com/chriskempson/base16-shell.git ~/.config/base16-
    && nvim -E -s -u ~/.config/nvim/plugins.vim -c 'PlugInstall | q' || echo '' \
    && echo ':PlugInstall finished' \
    && echo ':CocInstall started' \
-   && nvim -c 'CocInstall -sync coc-python coc-tsserver coc-solargraph | q' \
+   && nvim -c 'CocInstall -sync coc-python coc-tsserver | q' \
    && echo ':CocInstall finished'
 
+RUN echo 'export PATH=$PATH:/opt/conda/bin' >> ~/.zshrc
 WORKDIR /home/${username}
 
 RUN echo Built for: user=${username}, uid=${user_id}, gid=${group_id}
+
 CMD ["/usr/bin/tmux"]
