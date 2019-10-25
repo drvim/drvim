@@ -88,7 +88,6 @@ RUN curl https://raw.githubusercontent.com/robbyrussell/oh-my-zsh/master/tools/i
   && chmod +x ./install-zsh.sh \
   && zsh /tmp/install-zsh.sh --unattended
 
-ADD ./nvim/plugins-only.vim /tmp
 ADD ./etc /etc
 
 RUN git clone https://github.com/chriskempson/base16-shell.git ~/.config/base16-shell \
@@ -96,9 +95,12 @@ RUN git clone https://github.com/chriskempson/base16-shell.git ~/.config/base16-
    && cd ~/ddrscott \
    && rake links \
    && git clone https://github.com/ddrscott/config-nvim.git ~/.config/nvim \
-   && nvim -E -s -u /tmp/plugins-only.vim -c 'PlugInstall | qall' || echo 'Vim Plugins Installed'
-
-RUN nvim -c 'CocInstall -sync coc-python coc-tsserver coc-solargraph | q' && echo 'Coc Support Installed'
+   && echo ':PlugInstall started' \
+   && nvim -E -s -u ~/.config/nvim/plugins.vim -c 'PlugInstall | q' || echo '' \
+   && echo ':PlugInstall finished' \
+   && echo ':CocInstall started' \
+   && nvim -c 'CocInstall -sync coc-python coc-tsserver coc-solargraph | q' \
+   && echo ':CocInstall finished'
 
 WORKDIR /home/${username}
 
