@@ -22,6 +22,8 @@ ENV MINICONDA_MD5_SUM 0dba759b8ecfc8948f626fa18785e3d8
 RUN apt-get update -y && \
     apt-get install -y \
     build-essential \
+    openssh-server \
+    sudo \
     curl \
     zsh \
     git \
@@ -30,7 +32,8 @@ RUN apt-get update -y && \
     tmux \
     neovim \
     nodejs \
-    && rm -rf /var/lib/apt/lists/*
+    && rm -rf /var/lib/apt/lists/* \
+    && mkdir /var/run/sshd
 
 WORKDIR /tmp
 
@@ -71,7 +74,7 @@ RUN curl -sSO https://dl.yarnpkg.com/debian/pubkey.gpg && \
     apt-key add pubkey.gpg && \
     echo "deb https://dl.yarnpkg.com/debian/ stable main" >> /etc/apt/sources.list.d/yarn.list && \
     apt update && \
-    apt install -y sudo yarn && \
+    apt install -y yarn && \
     yarn global add neovim && \
     pip install --no-cache-dir \
        neovim \
