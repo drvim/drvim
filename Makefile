@@ -5,7 +5,7 @@ build:
 	docker build . -t drvim 
 
 run: build
-	docker run -it --rm -h drvim
+	docker run -it --rm -h drvim drvim
 
 all: build run
 

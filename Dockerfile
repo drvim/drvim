@@ -1,9 +1,9 @@
-FROM frolvlad/alpine-glibc
+FROM ubuntu:eoan
 MAINTAINER Scott Pierce <ddrscott@gmail.com>
 
-ENV LC_ALL en_US.UTF-8
-ENV LANG en_US.UTF-8
-ENV LANGUAGE en_US.UTF-8
+ENV LC_ALL C.UTF-8
+ENV LANG C.UTF-8
+ENV LANGUAGE C.UTF-8
 
 # Terminal settings and colors
 ENV TERM xterm-256color
@@ -19,19 +19,18 @@ ENV MINICONDA Miniconda3-$MINICONDA_VER-Linux-x86_64.sh
 ENV MINICONDA_URL https://repo.continuum.io/miniconda/$MINICONDA
 ENV MINICONDA_MD5_SUM 0dba759b8ecfc8948f626fa18785e3d8
 
-RUN echo 'http://dl-cdn.alpinelinux.org/alpine/edge/community' >> /etc/apk/repositories \
-  && apk add --update-cache \
-  bash \
-  zsh \
-  git \
-  unzip \
-  curl \
-  tmux \
-  neovim \
-  nodejs \
-  yarn \
-  shadow \
-  && rm -rf /var/cache/apk/*
+RUN apt-get update -y && \
+    apt-get install -y \
+    build-essential \
+    curl \
+    zsh \
+    git \
+    unzip \
+    curl \
+    tmux \
+    neovim \
+    nodejs \
+    && rm -rf /var/lib/apt/lists/*
 
 WORKDIR /tmp
 
@@ -68,7 +67,12 @@ RUN mkdir -p $CONDA_DIR && \
     && find /opt/conda/ -follow -type f -name '*.pyc' -delete \
     && find /opt/conda/ -follow -type f -name '*.js.map' -delete
 
-RUN yarn global add neovim && \
+RUN curl -sSO https://dl.yarnpkg.com/debian/pubkey.gpg && \
+    apt-key add pubkey.gpg && \
+    echo "deb https://dl.yarnpkg.com/debian/ stable main" >> /etc/apt/sources.list.d/yarn.list && \
+    apt update && \
+    apt install -y sudo yarn && \
+    yarn global add neovim && \
     pip install --no-cache-dir \
        neovim \
        python-language-server\[all\]
