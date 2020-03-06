@@ -1,4 +1,4 @@
-ARG BASE_CONTAINER=drvim-base
+ARG BASE_CONTAINER=drvim/drvim-base
 FROM $BASE_CONTAINER
 LABEL maintainer="Scott Pierce <ddrscott@gmail.com>"
 

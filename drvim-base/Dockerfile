@@ -63,9 +63,7 @@ RUN curl https://raw.githubusercontent.com/robbyrussell/oh-my-zsh/master/tools/i
 
 RUN git clone https://github.com/chriskempson/base16-shell.git ~/.config/base16-shell \
    && git clone https://github.com/ddrscott/ddrscott.git ~/ddrscott \
-   && cd ~/ddrscott          \
-   && git checkout ba3f0428e \
-   && ./install.sh           \
+   && ~/ddrscott/install.sh        \
    && git clone https://github.com/ddrscott/config-nvim.git ~/.config/nvim \
    && echo ':PlugInstall started'  \
    && nvim -E -s -u ~/.config/nvim/plugins.vim -c 'PlugInstall | q' || echo '' \
