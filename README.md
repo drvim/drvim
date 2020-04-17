@@ -60,7 +60,7 @@ See the `Makefile` for how your user is passed through to docker build.
 ## Run it in your Kubernetes Cluster
 
 ```sh
-kubectl run drvim -it --rm --generator=run-pod/v1 --image ddrscott/drvim:ubuntu-0.1
+kubectl run drvim -it --rm --generator=run-pod/v1 --image drvim/drvim-base
 #                  ^    ^    ^                      ^
 #                  |    |    |                      |
 #                  |    |    |                      |
